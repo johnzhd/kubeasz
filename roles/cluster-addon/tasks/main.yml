@@ -1,13 +1,11 @@
 - name: 获取所有已经创建的POD信息
-  command: "{{ base_dir }}/bin/kubectl get pod --all-namespaces"
+  local_action: command {{ base_dir }}/bin/kubectl get pod --all-namespaces
   register: pod_info
-  connection: local
   run_once: true
 
 - name: 获取已下载离线镜像信息
-  command: "ls {{ base_dir }}/down"
+  local_action: command ls {{ base_dir }}/down
   register: download_info
-  connection: local
   run_once: true
 
 - name: 注册变量 DNS_SVC_IP
@@ -59,17 +57,15 @@
 #          when: 'metallb_offline in image_info.stdout and CONTAINER_RUNTIME == "containerd"'
 #
 #    - name: 生成 metallb 相关 manifests
-#      template: src=metallb/{{ item }}.j2 dest={{ cluster_dir }}/yml/{{ item }}
+#      local_action: template src=metallb/{{ item }}.j2 dest={{ cluster_dir }}/yml/{{ item }}
 #      with_items:
 #      - "metallb.yaml"
 #      - "{{ metallb_protocol }}.yaml"
 #      run_once: true
-#      connection: local
 #
 #    - name: 创建 metallb controller 部署
-#      shell: "{{ base_dir }}/bin/kubectl apply -f {{ cluster_dir }}/yml/metallb.yaml && \
-#	      {{ base_dir }}/bin/kubectl apply -f {{ cluster_dir }}/yml/{{ metallb_protocol }}.yaml"
+#      local_action: shell {{ base_dir }}/bin/kubectl apply -f {{ cluster_dir }}/yml/metallb.yaml && \
+#	       {{ base_dir }}/bin/kubectl apply -f {{ cluster_dir }}/yml/{{ metallb_protocol }}.yaml
 #      run_once: true
-#      connection: local
 #  when: '"metallb" not in pod_info.stdout and metallb_install == "yes"'
 #  ignore_errors: true

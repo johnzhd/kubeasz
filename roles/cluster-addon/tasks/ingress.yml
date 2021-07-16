@@ -2,14 +2,13 @@
 
 - block:
     - name: 创建 traefik chart 个性化设置
-      template: src=traefik/values.yaml.j2 dest={{ cluster_dir }}/yml/traefik-values.yaml
+      local_action: template src=traefik/values.yaml.j2 dest={{ cluster_dir }}/yml/traefik-values.yaml
 
     - name: helm 创建 traefik chart {{ traefik_chart_ver }}
-      shell: "{{ base_dir }}/bin/helm install -n kube-system traefik \
+      local_action: shell {{ base_dir }}/bin/helm install -n kube-system traefik \
               -f {{ cluster_dir }}/yml/traefik-values.yaml \
-              {{ base_dir }}/roles/cluster-addon/files/traefik-{{ traefik_chart_ver }}.tgz"
+              {{ base_dir }}/roles/cluster-addon/files/traefik-{{ traefik_chart_ver }}.tgz
   run_once: true
-  connection: local
   when: 'ingress_backend == "traefik"'
 
 #- block:
@@ -31,7 +30,6 @@
 #          when: 'nginx_ingress_offline in image_info.stdout and CONTAINER_RUNTIME == "containerd"'
 #
 #    - name: 创建 nginx_ingress部署
-#      shell: "{{ base_dir }}/bin/kubectl apply -f {{ base_dir }}/manifests/ingress/nginx-ingress/nginx-ingress.yaml"
-#      connection: local
+#      local_action: shell {{ base_dir }}/bin/kubectl apply -f {{ base_dir }}/manifests/ingress/nginx-ingress/nginx-ingress.yaml
 #      run_once: true
 #  when: 'ingress_backend == "nginx-ingress"'

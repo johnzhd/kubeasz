@@ -38,16 +38,14 @@
   
   - block:
     - name: 创建 harbor 证书请求
-      template: src=harbor-csr.json.j2 dest={{ cluster_dir }}/ssl/harbor-csr.json
-      connection: local
+      local_action: template src=harbor-csr.json.j2 dest={{ cluster_dir }}/ssl/harbor-csr.json
     
     - name: 创建 harbor 证书和私钥
-      shell: "cd {{ cluster_dir }}/ssl && {{ base_dir }}/bin/cfssl gencert \
+      local_action: shell cd {{ cluster_dir }}/ssl && {{ base_dir }}/bin/cfssl gencert \
             -ca=ca.pem \
             -ca-key=ca-key.pem \
             -config=ca-config.json \
-            -profile=kubernetes harbor-csr.json|{{ base_dir }}/bin/cfssljson -bare harbor"
-      connection: local
+            -profile=kubernetes harbor-csr.json|{{ base_dir }}/bin/cfssljson -bare harbor
     
     - name: 分发自签名证书
       copy: src={{ cluster_dir }}/ssl/{{ item }} dest={{ ca_dir }}/{{ item }}

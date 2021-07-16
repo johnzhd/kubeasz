@@ -8,17 +8,15 @@
   - etcdctl
   tags: upgrade_etcd
 
-- name: 创建etcd证书请求
-  template: src=etcd-csr.json.j2 dest={{ cluster_dir }}/ssl/etcd-csr.json
-  connection: local
+- name: 创建 etcd 证书请求
+  local_action: template src=etcd-csr.json.j2 dest={{ cluster_dir }}/ssl/etcd-csr.json
 
-- name: 创建 etcd证书和私钥
-  shell: "cd {{ cluster_dir }}/ssl && {{ base_dir }}/bin/cfssl gencert \
+- name: 创建 etcd 证书和私钥
+  local_action: shell cd {{ cluster_dir }}/ssl && {{ base_dir }}/bin/cfssl gencert \
         -ca=ca.pem \
         -ca-key=ca-key.pem \
         -config=ca-config.json \
-        -profile=kubernetes etcd-csr.json | {{ base_dir }}/bin/cfssljson -bare etcd"
-  connection: local
+        -profile=kubernetes etcd-csr.json | {{ base_dir }}/bin/cfssljson -bare etcd
 
 - name: 分发etcd证书相关
   copy: src={{ cluster_dir }}/ssl/{{ item }} dest={{ ca_dir }}/{{ item }}

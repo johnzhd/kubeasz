@@ -38,13 +38,13 @@
 
 - block:
   - name: 获取docker版本信息
-    shell: "{{ base_dir }}/bin/dockerd --version|cut -d' ' -f3"
+    local_action: shell {{ base_dir }}/bin/dockerd --version|cut -d' ' -f3
     register: docker_ver
+    run_once: true
 
   - name: 转换docker版本信息为浮点数
-    set_fact:
-      DOCKER_VER: "{{ docker_ver.stdout.split('.')[0]|int + docker_ver.stdout.split('.')[1]|int/100 }}"
-  connection: local
+    local_action: set_fact DOCKER_VER="{{ docker_ver.stdout.split('.')[0]|int + docker_ver.stdout.split('.')[1]|int/100 }}"
+    run_once: true
   run_once: true
   tags: upgrade_k8s, restart_node
   when: "CONTAINER_RUNTIME == 'docker'"
@@ -120,9 +120,8 @@
 
 - block:
     - name: 获取已下载离线镜像信息
-      command: "ls {{ base_dir }}/down"
+      local_action: command ls {{ base_dir }}/down
       register: download_info
-      connection: local
 
     - name: 尝试推送离线dnscache镜像（若执行失败，可忽略）
       copy: src={{ base_dir }}/down/{{ dnscache_offline }} dest=/opt/kube/images/{{ dnscache_offline }}

@@ -8,22 +8,18 @@
 
 # 18.09.x 版本二进制名字有变化，需要做判断
 - name: 获取docker版本信息
-  shell: "{{ base_dir }}/bin/dockerd --version|cut -d' ' -f3"
+  local_action: shell {{ base_dir }}/bin/dockerd --version|cut -d' ' -f3
   register: docker_ver
-  connection: local
   run_once: true
   tags: upgrade_docker, download_docker
 
 - name: debug info
-  debug: var="docker_ver"
-  connection: local
+  local_action: debug var="docker_ver"
   run_once: true
   tags: upgrade_docker, download_docker
 
 - name: 转换docker版本信息为浮点数
-  set_fact: 
-    DOCKER_VER: "{{ docker_ver.stdout.split('.')[0]|int + docker_ver.stdout.split('.')[1]|int/100 }}"
-  connection: local
+  local_action: set_fact DOCKER_VER="{{ docker_ver.stdout.split('.')[0]|int + docker_ver.stdout.split('.')[1]|int/100 }}"
   run_once: true
   tags: upgrade_docker, download_docker
 
@@ -81,14 +77,14 @@
       template: src=daemon.json.j2 dest=/etc/docker/daemon.json
     
     - name: flush-iptables
-      shell: "iptables -P INPUT ACCEPT \
-            && iptables -P FORWARD ACCEPT \
-            && iptables -P OUTPUT ACCEPT \
-            && iptables -F && iptables -X \
-            && iptables -F -t nat && iptables -X -t nat \
-            && iptables -F -t raw && iptables -X -t raw \
-            && iptables -F -t mangle && iptables -X -t mangle"
-    
+      shell: "/usr/sbin/iptables -P INPUT ACCEPT \
+            && /usr/sbin/iptables -P FORWARD ACCEPT \
+            && /usr/sbin/iptables -P OUTPUT ACCEPT \
+            && /usr/sbin/iptables -F && iptables -X \
+            && /usr/sbin/iptables -F -t nat && iptables -X -t nat \
+            && /usr/sbin/iptables -F -t raw && iptables -X -t raw \
+            && /usr/sbin/iptables -F -t mangle && iptables -X -t mangle"
+      
     - name: 创建docker的systemd unit文件
       template: src=docker.service.j2 dest=/etc/systemd/system/docker.service
       tags: upgrade_docker, download_docker
@@ -102,9 +98,9 @@
       tags: upgrade_docker
 
     - name: 轮询等待docker服务运行
-      shell: "systemctl is-active docker.service"
+      shell: "systemctl status docker.service|grep Active"
       register: docker_status
-      until: '"active" in docker_status.stdout'
+      until: '"running" in docker_status.stdout'
       retries: 8
       delay: 2
       tags: upgrade_docker

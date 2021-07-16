@@ -17,31 +17,27 @@
   tags: change_cert
 
 - name: 创建 kubernetes 证书签名请求
-  template: src=kubernetes-csr.json.j2 dest={{ cluster_dir }}/ssl/kubernetes-csr.json
+  local_action: template src=kubernetes-csr.json.j2 dest={{ cluster_dir }}/ssl/kubernetes-csr.json
   tags: change_cert
-  connection: local
 
 - name: 创建 kubernetes 证书和私钥
-  shell: "cd {{ cluster_dir }}/ssl && {{ base_dir }}/bin/cfssl gencert \
+  local_action: shell cd {{ cluster_dir }}/ssl && {{ base_dir }}/bin/cfssl gencert \
         -ca=ca.pem \
         -ca-key=ca-key.pem \
         -config=ca-config.json \
-        -profile=kubernetes kubernetes-csr.json | {{ base_dir }}/bin/cfssljson -bare kubernetes"
+        -profile=kubernetes kubernetes-csr.json | {{ base_dir }}/bin/cfssljson -bare kubernetes
   tags: change_cert
-  connection: local
 
 # 创建aggregator proxy相关证书
 - name: 创建 aggregator proxy证书签名请求
-  template: src=aggregator-proxy-csr.json.j2 dest={{ cluster_dir }}/ssl/aggregator-proxy-csr.json
-  connection: local
+  local_action: template src=aggregator-proxy-csr.json.j2 dest={{ cluster_dir }}/ssl/aggregator-proxy-csr.json
 
 - name: 创建 aggregator-proxy证书和私钥
-  shell: "cd {{ cluster_dir }}/ssl && {{ base_dir }}/bin/cfssl gencert \
+  local_action: shell cd {{ cluster_dir }}/ssl && {{ base_dir }}/bin/cfssl gencert \
         -ca=ca.pem \
         -ca-key=ca-key.pem \
         -config=ca-config.json \
-        -profile=kubernetes aggregator-proxy-csr.json | {{ base_dir }}/bin/cfssljson -bare aggregator-proxy"
-  connection: local
+        -profile=kubernetes aggregator-proxy-csr.json | {{ base_dir }}/bin/cfssljson -bare aggregator-proxy
 
 - name: 分发 kubernetes证书
   copy: src={{ cluster_dir }}/ssl/{{ item }} dest={{ ca_dir }}/{{ item }}

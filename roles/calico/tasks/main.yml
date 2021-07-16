@@ -6,16 +6,15 @@
   - /opt/kube/images 
 
 - name: 创建calico 证书请求
-  template: src=calico-csr.json.j2 dest={{ cluster_dir }}/ssl/calico-csr.json
-  connection: local
+  local_action: template src=calico-csr.json.j2 dest={{ cluster_dir }}/ssl/calico-csr.json
 
 - name: 创建 calico证书和私钥
-  shell: "cd {{ cluster_dir }}/ssl && {{ base_dir }}/bin/cfssl gencert \
+  local_action: shell cd {{ cluster_dir }}/ssl && {{ base_dir }}/bin/cfssl gencert \
         -ca=ca.pem \
         -ca-key=ca-key.pem \
         -config=ca-config.json \
-        -profile=kubernetes calico-csr.json|{{ base_dir }}/bin/cfssljson -bare calico"
-  connection: local
+        -profile=kubernetes calico-csr.json|{{ base_dir }}/bin/cfssljson -bare calico
+
 
 - name: 分发calico证书相关
   copy: src={{ cluster_dir }}/ssl/{{ item }} dest=/etc/calico/ssl/{{ item }}
@@ -41,9 +40,8 @@
 # 【可选】推送离线docker 镜像，可以忽略执行错误
 - block:
     - name: 检查是否已下载离线calico镜像
-      command: "ls {{ base_dir }}/down"
+      local_action: command ls {{ base_dir }}/down
       register: download_info
-      connection: local
       run_once: true
     
     - name: 尝试推送离线docker 镜像（若执行失败，可忽略）
@@ -76,15 +74,13 @@
       when: "item in image_info.stdout and CONTAINER_RUNTIME == 'containerd'"
 
 - name: 配置 calico DaemonSet yaml文件
-  template: src=calico-{{ calico_ver_main }}.yaml.j2 dest={{ cluster_dir }}/yml/calico.yaml
+  local_action: template src=calico-{{ calico_ver_main }}.yaml.j2 dest={{ cluster_dir }}/yml/calico.yaml
   run_once: true
-  connection: local
 
 # 只需单节点执行一次
 - name: 运行 calico网络
-  shell: "{{ base_dir }}/bin/kubectl apply -f {{ cluster_dir }}/yml/calico.yaml"
+  local_action: shell {{ base_dir }}/bin/kubectl apply -f {{ cluster_dir }}/yml/calico.yaml
   run_once: true
-  connection: local
 
 # 删除原有cni配置
 - name: 删除默认cni配置

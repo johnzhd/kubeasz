@@ -27,9 +27,8 @@
 # 【可选】推送离线镜像，可以忽略执行错误
 - block:
     - name: 检查是否已下载离线kube_ovn镜像
-      command: "ls {{ base_dir }}/down"
+      local_action: command ls {{ base_dir }}/down
       register: download_info
-      connection: local
       run_once: true
     
     - name: 尝试推送离线docker 镜像（若执行失败，可忽略）
